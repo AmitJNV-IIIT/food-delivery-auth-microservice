@@ -1,0 +1,14 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+auth_service,com.sapient.auth_service.config,RestTemplateConfig,0,7,0,0,0,2,0,2,0,2
+auth_service,com.sapient.auth_service.config,SecurityConfig,0,148,0,0,0,21,0,7,0,7
+auth_service,com.sapient.auth_service.config,JwtTokenValidator,0,52,0,2,0,14,0,3,0,2
+auth_service,com.sapient.auth_service.modal,User,185,25,38,0,3,4,26,7,7,7
+auth_service,com.sapient.auth_service,AuthServiceApplication,5,3,0,0,2,1,1,1,1,1
+auth_service,com.sapient.auth_service.controller,AuthController,0,158,1,9,0,32,1,10,0,6
+auth_service,com.sapient.auth_service.serviceimpl,UserServiceImpl,0,21,0,0,0,4,0,3,0,3
+auth_service,com.sapient.auth_service.serviceimpl,CustomerUserDetailsServiceImpl,0,38,0,2,0,11,0,4,0,3
+auth_service,com.sapient.auth_service.util,JwtProvider,0,78,1,1,0,20,1,5,0,5
+auth_service,com.sapient.auth_service.util,JwtConstant,7,0,0,0,2,0,1,0,1,0
+auth_service,com.sapient.auth_service.dto,AuthResponse,26,18,0,0,4,3,6,3,6,3
+auth_service,com.sapient.auth_service.dto,LoginRequest,98,17,22,0,0,3,15,5,4,5
+auth_service,com.sapient.auth_service.dto,UserDto,186,24,38,0,2,5,26,7,7,7

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">auth_service</a> &gt; <a href="index.source.html" class="el_package">com.sapient.auth_service.controller</a> &gt; <span class="el_source">AuthController.java</span></div><h1>AuthController.java</h1><pre class="source lang-java linenums">package com.sapient.auth_service.controller;
+
+import com.sapient.auth_service.dto.UserDto;
+import com.sapient.auth_service.util.JwtProvider;
+import com.sapient.auth_service.modal.User;
+import com.sapient.auth_service.repository.UserRepository;
+import com.sapient.auth_service.dto.LoginRequest;
+import com.sapient.auth_service.dto.AuthResponse;
+import com.sapient.auth_service.service.CustomerUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+
+@RestController
+@RequestMapping(&quot;/auth&quot;)
+public class AuthController {
+
+    private static final String BEARER_PREFIX = &quot;Bearer &quot;;
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
+    private final CustomerUserDetailsService customerUserDetailsService;
+
+    @Autowired
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtProvider jwtProvider,
+<span class="fc" id="L35">                          CustomerUserDetailsService customerUserDetailsService, RestTemplate restTemplate) {</span>
+<span class="fc" id="L36">        this.userRepository = userRepository;</span>
+<span class="fc" id="L37">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L38">        this.jwtProvider = jwtProvider;</span>
+<span class="fc" id="L39">        this.customerUserDetailsService = customerUserDetailsService;</span>
+<span class="fc" id="L40">    }</span>
+
+    @PostMapping(&quot;/register&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; createUserHandler(@RequestBody UserDto user) {
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (userRepository.findByEmail(user.getEmail()) != null) {</span>
+<span class="fc" id="L45">            return ResponseEntity.status(HttpStatus.CONFLICT)</span>
+<span class="fc" id="L46">                    .body(new AuthResponse(null, &quot;Email is already used with another account&quot;, false));</span>
+        }
+
+<span class="fc" id="L49">        var createdUser = createUserFromDto(user);</span>
+<span class="fc" id="L50">        userRepository.save(createdUser);</span>
+
+<span class="fc" id="L52">        var authentication = authenticate(user.getEmail(), user.getPassword());</span>
+<span class="fc" id="L53">        String jwt = jwtProvider.generateToken(authentication);</span>
+
+<span class="fc" id="L55">        return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L56">                .body(new AuthResponse(jwt, &quot;Register success&quot;, true));</span>
+    }
+
+    @PostMapping(&quot;/login&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; signin(@RequestBody LoginRequest loginRequest) {
+<span class="fc" id="L61">        var authentication = authenticate(loginRequest.getEmail(), loginRequest.getPassword());</span>
+<span class="fc" id="L62">        String jwt = jwtProvider.generateToken(authentication);</span>
+
+<span class="fc" id="L64">        return ResponseEntity.ok(new AuthResponse(jwt, &quot;Login success&quot;, true));</span>
+    }
+
+    @GetMapping(&quot;/validate-token&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; validateToken(@RequestHeader(&quot;Authorization&quot;) String token) {
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (token.startsWith(BEARER_PREFIX)) {</span>
+<span class="fc" id="L70">            token = token.substring(BEARER_PREFIX.length());</span>
+        }
+
+<span class="fc" id="L73">        boolean isValid = jwtProvider.validateToken(token);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        String message = isValid ? &quot;Token is valid&quot; : &quot;Token is invalid&quot;;</span>
+<span class="fc" id="L75">        return ResponseEntity.ok(new AuthResponse(null, message, isValid));</span>
+    }
+
+    private User createUserFromDto(UserDto userDto) {
+<span class="fc" id="L79">       var user = new User();</span>
+<span class="fc" id="L80">        user.setEmail(userDto.getEmail());</span>
+<span class="fc" id="L81">        user.setFullName(userDto.getFullName());</span>
+<span class="fc" id="L82">        user.setPassword(passwordEncoder.encode(userDto.getPassword()));</span>
+<span class="fc" id="L83">        return user;</span>
+    }
+
+    Authentication authenticate(String username, String password) {
+<span class="fc" id="L87">        var userDetails = customerUserDetailsService.loadUserByUsername(username);</span>
+
+<span class="pc bpc" id="L89" title="1 of 4 branches missed.">        if (userDetails == null || !passwordEncoder.matches(password, userDetails.getPassword())) {</span>
+<span class="fc" id="L90">            throw new BadCredentialsException(&quot;Invalid username or password.&quot;);</span>
+        }
+<span class="fc" id="L92">        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

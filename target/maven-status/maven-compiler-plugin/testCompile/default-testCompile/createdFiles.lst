@@ -1,0 +1,6 @@
+com\sapient\auth_service\controller\AuthControllerTest.class
+com\sapient\auth_service\serviceimpl\CustomerUserDetailsServiceTest.class
+com\sapient\auth_service\config\JwtTokenValidatorTest.class
+com\sapient\auth_service\serviceimpl\UserServiceImplTest.class
+com\sapient\auth_service\AuthServiceApplicationTests.class
+com\sapient\auth_service\config\JwtProviderTest.class
